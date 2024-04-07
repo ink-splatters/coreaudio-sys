@@ -3,7 +3,7 @@ with pkgs; rec {
 
   default = mkShell.override { inherit (llvmPackages_17) stdenv; } {
 
-    inherit (common) RUSTFLAGS buildInputs;
+    inherit (common) COREAUDIO_SDK_PATH RUSTFLAGS buildInputs;
 
     name = "rust-shell";
 
