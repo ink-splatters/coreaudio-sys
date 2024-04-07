@@ -1,5 +1,5 @@
 {
-  description = "basic cpp development shell";
+  description = "rust development shell [RustAudio]";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixpkgs-unstable";
@@ -8,6 +8,11 @@
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
     };
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = {
@@ -18,10 +23,29 @@
     };
   };
 
-  outputs = { nixpkgs, flake-utils, pre-commit-hooks, self, ... }:
+  nixConfig = {
+    extra-substituters = "https://nix-community.cachix.org";
+    extra-trusted-public-keys =
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=";
+
+  };
+
+  outputs = { nixpkgs, fenix, flake-utils, pre-commit-hooks, self, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            (_: prev: {
+              rustPlatform =
+                let inherit (fenix.packages.${system}.minimal) toolchain;
+                in prev.makeRustPlatform {
+                  cargo = toolchain;
+                  rustc = toolchain;
+                };
+            })
+          ];
+        };
 
         inherit (pkgs) callPackage;
 
@@ -35,6 +59,6 @@
         formatter = pkgs.nixfmt;
 
         devShells =
-          import ./nix/shells.nix { inherit pkgs common self system; };
+          callPackage ./nix/shells.nix { inherit common self system; };
       });
 }
