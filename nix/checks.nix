@@ -8,8 +8,8 @@ pre-commit-hooks.lib.${system}.run {
     deadnix.enable = true;
 
     markdownlint = {
-	enable = true;
-	configuration.settings = { MD013.line_length = 500; };
+      enable = true;
+      settings.configuration = { MD013.line_length = 500; };
     };
 
     nil.enable = true;
